@@ -288,6 +288,7 @@ def linear_softmax(X, W, target_index):
 class LinearSoftmaxClassifier():
     def __init__(self):
         self.W = None
+        print('first W = none')
 
     def fit(self, X, y, batch_size=100, learning_rate=1e-7, reg=1e-5,
             epochs=1):
@@ -307,6 +308,7 @@ class LinearSoftmaxClassifier():
         num_features = X.shape[1]
         num_classes = np.max(y)+1
         if self.W is None:
+            print('nake W')
             self.W = 0.001 * np.random.randn(num_features, num_classes)
 
         loss_history = []
