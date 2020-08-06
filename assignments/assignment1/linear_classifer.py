@@ -346,10 +346,14 @@ class LinearSoftmaxClassifier():
           y_pred, np.array of int (test_samples)
         '''
         y_pred = np.zeros(X.shape[0], dtype=np.int)
+        XW_sum=np.dot(X,self.W)
+        #print('W_sum',XW_sum[:5])
+        pred=np.argmax(XW_sum,axis=1)
+        y_pred=pred
 
         # TODO Implement class prediction
         # Your final implementation shouldn't have any loops
-        raise Exception("Not implemented!")
+        #raise Exception("Not implemented!")
 
         return y_pred
 
