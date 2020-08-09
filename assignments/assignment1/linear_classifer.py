@@ -332,8 +332,9 @@ class LinearSoftmaxClassifier():
                 #check_gradient(lambda w: linear_classifer.linear_softmax_l2(w, reg,X,y), self.W)
 
             # end
-            print("Epoch %i, loss: %f" % (epoch, loss))
+            #print("Epoch %i, loss: %f" % (epoch, loss))
             loss_history.append(loss)
+            #print('loss',loss)
 
         return loss_history
 
