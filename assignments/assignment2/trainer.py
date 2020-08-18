@@ -82,6 +82,7 @@ class Trainer:
             self.setup_optimizers()
 
         num_train = self.dataset.train_X.shape[0]
+        print('num.train',num_train)
 
         loss_history = []
         train_acc_history = []
@@ -89,9 +90,15 @@ class Trainer:
         
         for epoch in range(self.num_epochs):
             shuffled_indices = np.arange(num_train)
+            #print('shuffled sample indices befor shuffle', shuffled_indices[:10])
+            np.random.seed(10)
             np.random.shuffle(shuffled_indices)
+            #print('shuffled sample indices after shuffle', shuffled_indices[:10])
             sections = np.arange(self.batch_size, num_train, self.batch_size)
-            batches_indices = np.array_split(shuffled_indices, sections)
+            #print('sections',sections[:10])
+            batches_indices = np.array_split(shuffled_indices, sections) # split the whole array into list of subarrays  
+            #print('batches_indices lenght',len(batches_indices))  #expect 9000/20= 450
+            #print('batches_indices.shape',batches_indices[0].shape) #expect = batch_sixze=2=
 
             batch_losses = []
 
@@ -99,13 +106,22 @@ class Trainer:
                 # TODO Generate batches based on batch_indices and
                 # use model to generate loss and gradients for all
                 # the params
-
-                raise Exception("Not implemented!")
+                local_x=self.dataset.train_X[batch_indices]
+                #local_x=self.dataset.train_X[:20]
+                #print('local_x.shape', local_x.shape)
+                target_index=self.dataset.train_y[batch_indices]
+                #target_index=self.dataset.train_y[:20]
+                #print('local_y.shape', target_index.shape)
+                loss = self.model.compute_loss_and_gradients(local_x, target_index)
+                #self.W=self.W-learning_rate*dW
+                #check_gradient(lambda w: linear_classifer.linear_softmax_l2(w, reg,X,y), self.W)                 
+    
 
                 for param_name, param in self.model.params().items():
                     optimizer = self.optimizers[param_name]
                     param.value = optimizer.update(param.value, param.grad, self.learning_rate)
 
+                
                 batch_losses.append(loss)
 
             if np.not_equal(self.learning_rate_decay, 1.0):
