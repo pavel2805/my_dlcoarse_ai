@@ -53,10 +53,14 @@ class Trainer:
 
     def setup_optimizers(self):
         params = self.model.params()
+        
         self.optimizers = {}
         for param_name, param in params.items():
+            #print('param_name', param_name, 'param', param)
             self.optimizers[param_name] = deepcopy(self.optim)
 
+        #print('self.optimizer', self.optimizers['W1'])
+        
     def compute_accuracy(self, X, y):
         """
         Computes accuracy on provided data using mini-batches
@@ -89,6 +93,7 @@ class Trainer:
         val_acc_history = []
         
         for epoch in range(self.num_epochs):
+            print('epoch number',epoch)
             shuffled_indices = np.arange(num_train)
             #print('shuffled sample indices befor shuffle', shuffled_indices[:10])
             np.random.seed(10)
@@ -98,8 +103,8 @@ class Trainer:
             #print('sections',sections[:10])
             batches_indices = np.array_split(shuffled_indices, sections) # split the whole array into list of subarrays  
             #print('batches_indices lenght',len(batches_indices))  #expect 9000/20= 450
-            #print('batches_indices.shape',batches_indices[0].shape) #expect = batch_sixze=2=
-
+            #print('batches_indices.shape',batches_indices[0].shape) #expect = batch_size=2=
+            
             batch_losses = []
 
             for batch_indices in batches_indices:
@@ -109,24 +114,47 @@ class Trainer:
                 local_x=self.dataset.train_X[batch_indices]
                 #local_x=self.dataset.train_X[:20]
                 #print('local_x.shape', local_x.shape)
+                #print('local_x[0][:10]', local_x[0][:10])
                 target_index=self.dataset.train_y[batch_indices]
+                #print('target_index',target_index)
                 #target_index=self.dataset.train_y[:20]
                 #print('local_y.shape', target_index.shape)
+                #print('W1.grad befor func', self.model.fc1.W.grad[0])
                 loss = self.model.compute_loss_and_gradients(local_x, target_index)
                 #self.W=self.W-learning_rate*dW
-                #check_gradient(lambda w: linear_classifer.linear_softmax_l2(w, reg,X,y), self.W)                 
-    
+                #check_gradient(lambda w: linear_classifer.linear_softmax_l2(w, reg,X,y), self.W)  
+                                
 
+                #print('W1.val befor opt', self.model.fc1.W.value[0])
+                #print('W1.grad befor opt', self.model.fc1.W.grad[0])
+                #rint('B1.val befor opt', self.model.fc1.B.value[0])
+                #print('B1.grad befor opt', self.model.fc1.B.grad[0])
+                #print('W2.val befor opt', self.model.fc2.W.value[0])
+                #print('W2.grad befor opt', self.model.fc2.W.grad[0])
+                #print('B2.val befor opt', self.model.fc2.B.value[0])
+                #print('B2.grad befor opt', self.model.fc2.B.grad[0])
+                
                 for param_name, param in self.model.params().items():
                     optimizer = self.optimizers[param_name]
                     param.value = optimizer.update(param.value, param.grad, self.learning_rate)
-
+                    param.grad = np.zeros_like(param.value)
+                    #print('param.grad.shape',param.grad.shape)
+                #print('W1.val after opt', self.model.fc1.W.value[0])
+                #print('W1.grad after opt', self.model.fc1.W.grad[0])
+                #print('B1.val after opt', self.model.fc1.B.value[0])
+                #print('B1.grad after opt', self.model.fc1.B.grad[0])
+                #print('W2.val after opt', self.model.fc2.W.value[0])
+                #print('W2.grad after opt', self.model.fc2.W.grad[0])
+                #print('B2.val after opt', self.model.fc2.B.value[0])
+                #print('B2.grad after opt', self.model.fc2.B.grad[0])
                 
                 batch_losses.append(loss)
 
             if np.not_equal(self.learning_rate_decay, 1.0):
                 # TODO: Implement learning rate decay
-                raise Exception("Not implemented!")
+                #raise Exception("Not implemented!")
+                self.learning_rate = self.learning_rate*self.learning_rate_decay
+                
 
             ave_loss = np.mean(batch_losses)
 
@@ -136,7 +164,7 @@ class Trainer:
             val_accuracy = self.compute_accuracy(self.dataset.val_X,
                                                  self.dataset.val_y)
 
-            print("Loss: %f, Train accuracy: %f, val accuracy: %f" %
+            print("last Loss of batch: %f, Train accuracy: %f, val accuracy: %f" %
                   (batch_losses[-1], train_accuracy, val_accuracy))
 
             loss_history.append(ave_loss)
