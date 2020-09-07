@@ -15,26 +15,63 @@ def check_gradient(f, x, delta=1e-5, tol=1e-4):
     Return:
       bool indicating whether gradients match or not
     """
+
     assert isinstance(x, np.ndarray)
     assert x.dtype == np.float
-
+    
+    orig_x = x.copy()
+    #print('check_g, orig_x befor',orig_x)
+    #print('check_g, x befor',x)
+    #print('befor first pass in grad check')
     fx, analytic_grad = f(x)
-    analytic_grad = analytic_grad.copy()
+    #print('after first pass in grad check')
+    #print('check_g, orig_x after',orig_x)
+    #print('check_g, x.shape',x.shape)
+    #print('func',f(x)[0])
+    #print('fx=',fx,'analityc_grad=',analytic_grad)
+    
+    assert np.all(np.isclose(orig_x, x, tol)), "Functions shouldn't modify input variables"
 
     assert analytic_grad.shape == x.shape
+    #print('analitical grad.shape',analytic_grad.shape)
+    analytic_grad = analytic_grad.copy()
 
+    # We will go through every dimension of x and compute numeric
+    # derivative for it
     it = np.nditer(x, flags=['multi_index'], op_flags=['readwrite'])
+    #print('it.shape=',it.shape)
     while not it.finished:
         ix = it.multi_index
+        #print('ix',ix)
+        #print('x[ix]',x[ix])
         analytic_grad_at_ix = analytic_grad[ix]
-        numeric_grad_at_ix = 0
+        #print('analitical_grad-at_ix',analytic_grad_at_ix)
+        orig_x = x.copy()
+        #print('orig_x',orig_x)
+        #print('x.shape befor delta',x.shape)
+        orig_x[ix]+=delta
+        #print('x.shape after delta',x.shape)
+        #print('orig_x[ix] delta +',orig_x[ix])
+        fx_plus=f(orig_x)[0]
+        #fx_plus=fx_plus_full[ix[0]]
+        #print('fx__plus',fx_plus)
+        orig_x = x.copy()
+        orig_x[ix]-=delta
+        #print('orig_x[ix] delta -',orig_x[ix])
+        fx_minus=f(orig_x)[0]
+        #print('fx_minus',fx_minus)
+        
+        divider=2*delta
+        #print('divider',divider)
+        #numeric_grad_at_ix = np.divide((fx_plus-fx_minus),divider)
+        numeric_grad_at_ix = (fx_plus-fx_minus)/divider
+        #print('numeric_grad_at_ix',numeric_grad_at_ix)
+        #print('fx(ix)', fx[ix])
 
-        # TODO Copy from previous assignment
-        raise Exception("Not implemented!")
-
+        # TODO compute value of numeric gradient of f to idx
+        
         if not np.isclose(numeric_grad_at_ix, analytic_grad_at_ix, tol):
-            print("Gradients are different at %s. Analytic: %2.5f, Numeric: %2.5f" % (
-                  ix, analytic_grad_at_ix, numeric_grad_at_ix))
+            print("Gradients are different at %s. Analytic: %2.5f, Numeric: %2.5f" % (ix, analytic_grad_at_ix, numeric_grad_at_ix))
             return False
 
         it.iternext()
@@ -57,11 +94,15 @@ def check_layer_gradient(layer, x, delta=1e-5, tol=1e-4):
       bool indicating whether gradients match or not
     """
     output = layer.forward(x)
-    output_weight = np.random.randn(*output.shape)
+    np.random.seed(10)
+    #output_weight = np.random.randn(*output.shape)
+    output_weight = np.ones_like(output)
+    #print('output_weight',output_weight)
 
     def helper_func(x):
         output = layer.forward(x)
         loss = np.sum(output * output_weight)
+        #print('loss',loss)
         d_out = np.ones_like(output) * output_weight
         grad = layer.backward(d_out)
         return loss, grad
